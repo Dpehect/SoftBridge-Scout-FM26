@@ -1,0 +1,3 @@
+import Link from "next/link";import {getCollections} from "../../lib/api";
+export const metadata={title:"FM26 Player Collections"};
+export default async function Page(){const items=await getCollections();return <main className="page container"><header className="page-head"><span className="eyebrow">DISCOVER</span><h1>Player collections</h1><p>Curated recruitment lists built from live scouting rules.</p></header><div className="card-grid">{items.map((x:any)=><Link className="panel feature-card" href={`/collections/${x.slug}`} key={x.id}><span className="chip">{x.ruleKey}</span><h2>{x.name}</h2><p>{x.description}</p><b>Open collection →</b></Link>)}</div></main>}

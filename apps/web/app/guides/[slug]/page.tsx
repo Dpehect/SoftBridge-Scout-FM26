@@ -1,0 +1,1 @@
+import {getArticle} from "../../../lib/api";export default async function Page({params}:{params:Promise<{slug:string}>}){const {slug}=await params;const a=await getArticle(slug);return <main className="page container article"><span className="eyebrow">{a.category}</span><h1>{a.title}</h1><p className="lead">{a.summary}</p><div className="panel article-body">{a.body}</div></main>}

@@ -1,0 +1,1 @@
+import Link from "next/link"; export default function NotFound(){return <main className="container" style={{padding:"100px 0"}}><h1>Oyuncu bulunamadı</h1><Link className="btn btn-primary" href="/players">Oyunculara dön</Link></main>}

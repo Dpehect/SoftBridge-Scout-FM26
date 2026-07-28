@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FmScout.Api/FmScout.Api.csproj" />
+    <Project Path="src/FmScout.Application/FmScout.Application.csproj" />
+    <Project Path="src/FmScout.Domain/FmScout.Domain.csproj" />
+    <Project Path="src/FmScout.Infrastructure/FmScout.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FmScout.Api.Tests/FmScout.Api.Tests.csproj" />
+  </Folder>
+</Solution>

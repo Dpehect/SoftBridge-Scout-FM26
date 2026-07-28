@@ -1,0 +1,7 @@
+"use client";
+import { FormEvent, useState } from "react";
+const api = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+export default function LoginPage(){
+ const [mode,setMode]=useState<"login"|"register">("login"); const [message,setMessage]=useState("");
+ async function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();const data=Object.fromEntries(new FormData(e.currentTarget));const res=await fetch(`${api}/api/auth/${mode}`,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(data)});const body=await res.json();if(!res.ok){setMessage(body.message??"İşlem başarısız");return;}localStorage.setItem("fm26_access",body.accessToken);localStorage.setItem("fm26_refresh",body.refreshToken);location.href="/profile";}
+ return <main className="shell section"><div className="auth-card"><p className="eyebrow">SCOUT ACCOUNT</p><h1>{mode==="login"?"Giriş yap":"Hesap oluştur"}</h1><form onSubmit={submit}>{mode==="register"&&<input name="displayName" required placeholder="Ad soyad"/>}<input name="email" type="email" required placeholder="E-posta"/><input name="password" type="password" minLength={8} required placeholder="Şifre"/><button className="button" type="submit">Devam et</button></form>{message&&<p>{message}</p>}<button className="text-button" onClick={()=>setMode(mode==="login"?"register":"login")}>{mode==="login"?"Yeni hesap oluştur":"Zaten hesabım var"}</button></div></main>}

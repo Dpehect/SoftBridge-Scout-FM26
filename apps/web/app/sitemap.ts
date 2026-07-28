@@ -1,0 +1,1 @@
+import type {MetadataRoute} from "next";export default function sitemap():MetadataRoute.Sitemap{const base=process.env.NEXT_PUBLIC_SITE_URL??"https://fm26-scout.vercel.app";return ["","/players","/scouting","/compare","/collections","/guides","/tactics"].map(path=>({url:base+path,lastModified:new Date(),changeFrequency:path?"weekly":"daily",priority:path?0.8:1}))}

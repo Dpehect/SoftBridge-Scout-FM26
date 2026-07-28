@@ -1,0 +1,5 @@
+"use client";
+import { useEffect, useState } from "react";
+const api=process.env.NEXT_PUBLIC_API_URL??"http://localhost:8080";
+type Favorite={id:string;slug:string;name:string;primaryPosition:string;potentialAbility:number};
+export default function Profile(){const [items,setItems]=useState<Favorite[]>([]);const [status,setStatus]=useState("Yükleniyor");useEffect(()=>{const token=localStorage.getItem("fm26_access");if(!token){location.href="/login";return;}fetch(`${api}/api/me/favorites`,{headers:{authorization:`Bearer ${token}`}}).then(async r=>{if(!r.ok)throw new Error();setItems(await r.json());setStatus("")}).catch(()=>setStatus("Oturum yenilenmeli."));},[]);return <main className="shell section"><p className="eyebrow">MY SCOUT ROOM</p><h1>Favori oyuncular</h1>{status&&<p>{status}</p>}<div className="player-grid">{items.map(x=><a className="player-card" href={`/players/${x.slug}`} key={x.id}><strong>{x.name}</strong><span>{x.primaryPosition} · PA {x.potentialAbility}</span></a>)}</div></main>}

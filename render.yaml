@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: fm26-scout-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./src/FmScout.Api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://+:8080
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: Cors__Origins__0
+        sync: false
+
+# Add in Render dashboard: Jwt__Secret, Jwt__Issuer, Jwt__Audience

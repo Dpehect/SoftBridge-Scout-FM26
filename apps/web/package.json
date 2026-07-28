@@ -1,0 +1,5 @@
+{
+  "name":"fm26-scout-web","version":"0.1.0","private":true,"scripts":{"dev":"next dev","build":"next build","start":"next start","lint":"eslint ."},
+  "dependencies":{"@tanstack/react-query":"^5.66.8","clsx":"^2.1.1","lucide-react":"^0.468.0","next":"16.0.0","react":"19.0.0","react-dom":"19.0.0","recharts":"^2.15.1","tailwind-merge":"^3.0.1"},
+  "devDependencies":{"@types/node":"^22.10.5","@types/react":"^19.0.3","@types/react-dom":"^19.0.2","eslint":"^9.18.0","eslint-config-next":"16.0.0","postcss":"^8.5.1","@tailwindcss/postcss":"^4.0.0","tailwindcss":"^4.0.0","typescript":"^5.7.3"}
+}
