@@ -48,3 +48,7 @@ Collections, guides, tactics, persistent shortlists, admin operations, audit log
 - Kullanıcı favorileri
 - Profil ve giriş ekranları
 - Rol tabanlı güvenlik temeli
+
+
+## Faz 23–28
+Tam admin operasyonları, CSV veri hattı, Supabase indeksleri, admin frontend, CI kalite kapıları ve production kontrol listesi eklendi. Ayrıntılar: `docs/PHASES-23-28.md`.

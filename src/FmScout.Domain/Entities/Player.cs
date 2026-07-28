@@ -32,6 +32,7 @@ public sealed class Player : Entity
     public bool IsFeatured { get; private set; }
     public PlayerAttributes Attributes { get; private set; } = null!;
     public ICollection<PlayerRoleScore> RoleScores { get; private set; } = [];
+    public void UpdateIdentity(string firstName, string lastName, string slug, DateOnly dateOfBirth, Guid countryId) { FirstName = firstName; LastName = lastName; Slug = slug; DateOfBirth = dateOfBirth; CountryId = countryId; Touch(); }
     public void AssignClub(Guid? clubId) { ClubId = clubId; Touch(); }
     public void SetProfile(string primaryPosition, string secondaryPositions, PreferredFoot foot, int heightCm, string personality, string mediaDescription)
     { PrimaryPosition = primaryPosition; SecondaryPositions = secondaryPositions; PreferredFoot = foot; HeightCm = heightCm; Personality = personality; MediaDescription = mediaDescription; Touch(); }
