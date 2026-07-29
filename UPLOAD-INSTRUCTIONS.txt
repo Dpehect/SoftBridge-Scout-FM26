@@ -1,0 +1,10 @@
+IMPORTANT
+
+Upload the ENTIRE contents of this ZIP to the repository root.
+Do not upload only the src folder or only AdminController.cs.
+
+This package restores all project files and includes:
+- CA2024 async CSV fix
+- Root-level Dockerfile
+- render.yaml configured with ./Dockerfile
+- Render-ready PostgreSQL setup
