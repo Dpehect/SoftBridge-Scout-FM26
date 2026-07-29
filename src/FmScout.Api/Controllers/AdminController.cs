@@ -85,9 +85,10 @@ public sealed class AdminController(FmScoutDbContext db) : ControllerBase
         var header = await reader.ReadLineAsync(ct);
         if (header is null) return BadRequest(new { error = "CSV header is missing." });
         var row = 1;
-        while (!reader.EndOfStream)
+        string? line;
+        while ((line = await reader.ReadLineAsync(ct)) is not null)
         {
-            row++; var line = await reader.ReadLineAsync(ct); if (string.IsNullOrWhiteSpace(line)) continue;
+            row++; if (string.IsNullOrWhiteSpace(line)) continue;
             try
             {
                 var c = ParseCsvLine(line); if (c.Count < 12) throw new InvalidDataException("Expected at least 12 columns.");
