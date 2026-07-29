@@ -5,16 +5,4 @@
     <Nullable>enable</Nullable>
     <InvariantGlobalization>false</InvariantGlobalization>
   </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="../FmScout.Application/FmScout.Application.csproj" />
-    <ProjectReference Include="../FmScout.Domain/FmScout.Domain.csproj" />
-    <ProjectReference Include="../FmScout.Infrastructure/FmScout.Infrastructure.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.0" />
-    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
-  </ItemGroup>
 </Project>
