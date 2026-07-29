@@ -1,10 +1,16 @@
-IMPORTANT
+FM26 SCOUT PLATFORM - RENDER V6
 
 Upload the ENTIRE contents of this ZIP to the repository root.
-Do not upload only the src folder or only AdminController.cs.
 
-This package restores all project files and includes:
+Included fixes:
+- Full project restored
 - CA2024 async CSV fix
 - Root-level Dockerfile
-- render.yaml configured with ./Dockerfile
-- Render-ready PostgreSQL setup
+- render.yaml uses ./Dockerfile
+- Incompatible Swashbuckle/OpenAPI packages removed
+- Swagger service and middleware calls removed
+- API controllers and health checks preserved
+
+Render settings:
+Dockerfile Path: ./Dockerfile
+Docker Build Context Directory: .

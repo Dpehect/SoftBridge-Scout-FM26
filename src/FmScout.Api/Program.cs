@@ -31,8 +31,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)), ClockSkew = TimeSpan.FromSeconds(30)
 });
 builder.Services.AddAuthorization();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddProblemDetails();
 builder.Services.AddHealthChecks().AddDbContextCheck<FmScoutDbContext>();
 builder.Services.AddResponseCompression();
@@ -53,7 +51,6 @@ app.UseCors("web");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
-if (app.Environment.IsDevelopment()) { app.UseSwagger(); app.UseSwaggerUI(); }
 app.MapControllers().RequireRateLimiting("api");
 app.MapHealthChecks("/health");
 app.MapGet("/", () => Results.Ok(new { service = "FM26 Scout API", status = "healthy" }));
