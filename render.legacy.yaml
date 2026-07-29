@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: fm26-scout-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./src/FmScout.Api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://+:8080
+      - key: MongoDb__ConnectionString
+        sync: false
+      - key: MongoDb__DatabaseName
+        value: fm26scout
+      - key: Cors__Origins__0
+        sync: false
+      - key: Jwt__Secret
+        sync: false
+      - key: Jwt__Issuer
+        value: fm26-scout-api
+      - key: Jwt__Audience
+        value: fm26-scout-web
+      - key: Admin__ApiKey
+        sync: false

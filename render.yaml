@@ -3,17 +3,36 @@ services:
     name: fm26-scout-api
     runtime: docker
     plan: free
+    region: frankfurt
     dockerfilePath: ./src/FmScout.Api/Dockerfile
     dockerContext: .
     healthCheckPath: /health
+    autoDeployTrigger: commit
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
-      - key: ASPNETCORE_URLS
-        value: http://+:8080
       - key: ConnectionStrings__DefaultConnection
-        sync: false
+        fromDatabase:
+          name: fm26-scout-db
+          property: connectionString
       - key: Cors__Origins__0
         sync: false
+      - key: Jwt__Issuer
+        value: fm26-scout-api
+      - key: Jwt__Audience
+        value: fm26-scout-web
+      - key: Jwt__Secret
+        generateValue: true
+      - key: Jwt__AccessMinutes
+        value: "30"
+      - key: Admin__ApiKey
+        generateValue: true
 
-# Add in Render dashboard: Jwt__Secret, Jwt__Issuer, Jwt__Audience
+databases:
+  - name: fm26-scout-db
+    plan: free
+    region: frankfurt
+    databaseName: fm26scout
+    user: fmscout
+    postgresMajorVersion: "17"
+    ipAllowList: []
