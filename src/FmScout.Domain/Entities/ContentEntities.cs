@@ -1,0 +1,8 @@
+using FmScout.Domain.Common;
+namespace FmScout.Domain.Entities;
+public sealed class Article : Entity { public string Title {get;set;}=""; public string Slug {get;set;}=""; public string Summary {get;set;}=""; public string Body {get;set;}=""; public string Category {get;set;}="Guide"; public string Tags {get;set;}=""; public bool IsPublished {get;set;} public DateTimeOffset? PublishedAt {get;set;} }
+public sealed class PlayerCollection : Entity { public string Name {get;set;}=""; public string Slug {get;set;}=""; public string Description {get;set;}=""; public string RuleKey {get;set;}="wonderkids"; public bool IsFeatured {get;set;} }
+public sealed class Shortlist : Entity { public string OwnerKey {get;set;}="demo"; public string Name {get;set;}=""; public bool IsPublic {get;set;} public string ShareCode {get;set;}=Guid.NewGuid().ToString("N")[..10]; public ICollection<ShortlistPlayer> Players {get;set;}=[]; }
+public sealed class ShortlistPlayer : Entity { public Guid ShortlistId {get;set;} public Shortlist Shortlist {get;set;}=null!; public Guid PlayerId {get;set;} public Player Player {get;set;}=null!; public string Note {get;set;}=""; }
+public sealed class Tactic : Entity { public string OwnerKey {get;set;}="demo"; public string Name {get;set;}=""; public string Formation {get;set;}="4-2-3-1"; public string Mentality {get;set;}="Positive"; public string RolesJson {get;set;}="[]"; }
+public sealed class AuditLog : Entity { public string Action {get;set;}=""; public string EntityName {get;set;}=""; public string EntityId {get;set;}=""; public string Actor {get;set;}="system"; public string Details {get;set;}=""; }
