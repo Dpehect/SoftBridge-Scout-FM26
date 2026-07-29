@@ -1,0 +1,6 @@
+1. ZIP'i açın.
+2. İçindeki dosyaları proje kök klasörüne sürükleyip bırakın.
+3. Sorulduğunda README.md ve src/FmScout.Api/appsettings.json dosyalarını değiştirin.
+4. DELETE-THESE-FILES.txt içindeki eski Render dosyalarını GitHub'dan silin.
+5. koyeb.env.example dosyasını GitHub'a gerçek secret değerleriyle yüklemeyin.
+6. Koyeb panelinde docs/KOYEB-NEON-DEPLOYMENT.md adımlarını uygulayın.

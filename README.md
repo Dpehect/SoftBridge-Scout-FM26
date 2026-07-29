@@ -1,31 +1,35 @@
 # FM26 Scout Platform
 
-Portföy seviyesinde Football Manager 2026 scout platformu.
+Portföy ve kurumsal kullanım seviyesinde Football Manager 2026 scout platformu.
 
 ## Teknoloji
 
 - Next.js 16 + React 19 + TypeScript
 - ASP.NET Core Web API (.NET 10)
-- PostgreSQL + Entity Framework Core
+- Neon PostgreSQL + Entity Framework Core
 - JWT authentication ve role-based authorization
 - Docker
 - Vercel frontend deployment
-- Render Blueprint backend ve database deployment
+- Koyeb backend deployment
 
-## Render ile deploy
-
-Ayrıntılı ve adım adım kurulum:
+## Production mimarisi
 
 ```text
-docs/RENDER-DEPLOYMENT.md
+Frontend  -> Vercel
+Backend   -> Koyeb
+Database  -> Neon PostgreSQL
 ```
-
-Render tek `render.yaml` dosyası üzerinden API ve PostgreSQL veritabanını birlikte oluşturur.
 
 ## Local backend
 
 ```bash
 dotnet run --project src/FmScout.Api/FmScout.Api.csproj
+```
+
+Local PostgreSQL bağlantısını ortam değişkeniyle tanımlayın:
+
+```bash
+export ConnectionStrings__DefaultConnection="Host=localhost;Port=5432;Database=fm26scout;Username=postgres;Password=postgres"
 ```
 
 ## Local frontend
@@ -36,6 +40,12 @@ npm install
 npm run dev
 ```
 
-## Render build fix
+## Production deployment
 
-The Application project explicitly references `Microsoft.Extensions.DependencyInjection.Abstractions` so its `AddApplication(IServiceCollection)` extension compiles independently under .NET 10.
+Koyeb ve Neon kurulum adımları:
+
+```text
+docs/KOYEB-NEON-DEPLOYMENT.md
+```
+
+Gerçek bağlantı dizeleri ve gizli anahtarlar GitHub dosyalarına eklenmez. Bunlar hosting panellerindeki environment variables alanlarından yönetilir.

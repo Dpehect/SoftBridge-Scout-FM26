@@ -1,0 +1,8 @@
+Projeden aşağıdaki Render dosyalarını silin:
+
+render.yaml
+docs/RENDER-DEPLOYMENT.md
+
+Kullanılmıyorsa aşağıdakini de silin:
+
+docker-compose.aws.yml
