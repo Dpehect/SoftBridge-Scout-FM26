@@ -35,3 +35,7 @@ cd apps/web
 npm install
 npm run dev
 ```
+
+## Render build fix
+
+The Application project explicitly references `Microsoft.Extensions.DependencyInjection.Abstractions` so its `AddApplication(IServiceCollection)` extension compiles independently under .NET 10.

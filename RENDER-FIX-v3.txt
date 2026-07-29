@@ -1,0 +1,7 @@
+Render compile fix v3
+- Removed src/FmScout.Application/DependencyInjection.cs
+- Removed Microsoft.Extensions.DependencyInjection.Abstractions from Application project
+- Registered PlayerService and ScoutingService directly in src/FmScout.Api/Program.cs
+
+Upload the COMPLETE repository contents, not only selected files.
+Then use Render: Manual Deploy > Clear build cache & deploy.
