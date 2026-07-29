@@ -2,19 +2,14 @@ services:
   - type: web
     name: fm26-scout-api
     runtime: docker
-    plan: free
-    region: frankfurt
     dockerfilePath: ./Dockerfile
-    dockerContext: .
     healthCheckPath: /health
-    autoDeployTrigger: commit
+    autoDeploy: true
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
       - key: ConnectionStrings__DefaultConnection
-        fromDatabase:
-          name: fm26-scout-db
-          property: connectionString
+        sync: false
       - key: Cors__Origins__0
         sync: false
       - key: Jwt__Issuer
@@ -27,12 +22,3 @@ services:
         value: "30"
       - key: Admin__ApiKey
         generateValue: true
-
-databases:
-  - name: fm26-scout-db
-    plan: free
-    region: frankfurt
-    databaseName: fm26scout
-    user: fmscout
-    postgresMajorVersion: "17"
-    ipAllowList: []
