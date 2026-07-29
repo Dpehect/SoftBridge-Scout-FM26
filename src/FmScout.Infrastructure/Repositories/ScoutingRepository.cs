@@ -56,9 +56,9 @@ public sealed class ScoutingRepository(FmScoutDbContext db) : IScoutingRepositor
         var result = players.Select(p =>
         {
             var a = p.Attributes;
-            var technical = new[] { a.Passing, a.Technique, a.FirstTouch, a.Dribbling, a.Finishing, a.Tackling, a.Marking, a.Crossing }.Average() * 5m;
-            var mental = new[] { a.Decisions, a.Vision, a.WorkRate, a.Teamwork, a.Anticipation, a.Composure, a.Determination, a.Positioning }.Average() * 5m;
-            var physical = new[] { a.Acceleration, a.Pace, a.Stamina, a.Strength }.Average() * 5m;
+            var technical = new decimal[] { a.Passing, a.Technique, a.FirstTouch, a.Dribbling, a.Finishing, a.Tackling, a.Marking, a.Crossing }.Average() * 5m;
+            var mental = new decimal[] { a.Decisions, a.Vision, a.WorkRate, a.Teamwork, a.Anticipation, a.Composure, a.Determination, a.Positioning }.Average() * 5m;
+            var physical = new decimal[] { a.Acceleration, a.Pace, a.Stamina, a.Strength }.Average() * 5m;
             return new ComparisonPlayerDto(p.Id, p.Slug, p.FullName, p.Age, p.PrimaryPosition, p.MarketValue, p.WeeklyWage,
                 p.CurrentAbility, p.PotentialAbility, p.RoleScores.Select(x => x.Score).DefaultIfEmpty(0).Max(),
                 new Dictionary<string, decimal> { ["Teknik"] = Math.Round(technical, 1), ["Mental"] = Math.Round(mental, 1), ["Fiziksel"] = Math.Round(physical, 1) });

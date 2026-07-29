@@ -1,0 +1,4 @@
+Render fix v4
+- Removed obsolete Npgsql TrustServerCertificate assignment.
+- Replaced MaximumPoolSize with Npgsql MaxPoolSize.
+- Converted comparison attribute arrays to decimal[] so Average() returns decimal.

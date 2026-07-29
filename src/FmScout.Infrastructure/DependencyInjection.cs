@@ -36,9 +36,8 @@ public static class DependencyInjection
             Username = Uri.UnescapeDataString(credentials[0]),
             Password = credentials.Length > 1 ? Uri.UnescapeDataString(credentials[1]) : string.Empty,
             SslMode = Npgsql.SslMode.Require,
-            TrustServerCertificate = true,
             Pooling = true,
-            MaximumPoolSize = 20,
+            MaxPoolSize = 20,
             Timeout = 15,
             CommandTimeout = 30
         };
