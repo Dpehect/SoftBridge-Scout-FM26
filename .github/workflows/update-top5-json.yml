@@ -1,4 +1,4 @@
-name: Update Top 5 League JSON
+name: Update Premier League Senior Squads
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ on:
       - ".github/workflows/update-top5-json.yml"
 
 concurrency:
-  group: update-top5-json
+  group: update-premier-league-json
   cancel-in-progress: false
 
 permissions:
@@ -20,7 +20,7 @@ permissions:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 240
+    timeout-minutes: 120
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,17 +30,20 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Scrape permitted FM26 top five league data
+      - name: Import Premier League senior squads
         run: node scripts/scrape-top5-json.mjs
 
-      - name: Validate generated dataset
+      - name: Validate generated Premier League dataset
         shell: bash
         run: |
           set -euo pipefail
-          test -f apps/web/data/players/top5.json
-          count=$(node -e "const p=require('./apps/web/data/players/top5.json'); console.log(p.length)")
-          echo "Generated player count: $count"
-          test "$count" -gt 500
+          test -f apps/web/data/players/premier-league.json
+          count=$(node -e "const p=require('./apps/web/data/players/premier-league.json'); console.log(p.length)")
+          clubs=$(node -e "const p=require('./apps/web/data/players/premier-league.json'); console.log(new Set(p.map(x=>x.club)).size)")
+          echo "Premier League players: $count"
+          echo "Premier League clubs: $clubs"
+          test "$count" -ge 350
+          test "$clubs" -eq 20
 
       - name: Commit updated JSON
         shell: bash
@@ -48,10 +51,10 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/web/data/players/*.json
+          git add apps/web/data/players/premier-league.json apps/web/data/players/top5.json
           if git diff --cached --quiet; then
-            echo "Player data is already current"
+            echo "Premier League player data is already current"
             exit 0
           fi
-          git commit -m "data: refresh FM26 top five league players"
+          git commit -m "data: refresh Premier League senior squads"
           git push
