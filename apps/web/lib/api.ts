@@ -8,17 +8,10 @@ export type Comparison={players:Array<{id:string;slug:string;fullName:string;age
 
 const PRODUCTION_API_URL="https://fm26-scout-api.onrender.com/api";
 const configuredApi=process.env.NEXT_PUBLIC_API_URL?.trim();
-const API=(process.env.NODE_ENV==="production"
-  ? PRODUCTION_API_URL
-  : configuredApi||"http://localhost:8080/api"
-).replace(/\/$/,"");
+const API=(process.env.NODE_ENV==="production"?PRODUCTION_API_URL:configuredApi||"http://localhost:8080/api").replace(/\/$/,"");
 
 async function request<T>(path:string,revalidate=60):Promise<T>{
-  const response=await fetch(`${API}${path}`,{
-    next:{revalidate},
-    signal:AbortSignal.timeout(60000),
-    headers:{Accept:"application/json"}
-  });
+  const response=await fetch(`${API}${path}`,{next:{revalidate},signal:AbortSignal.timeout(60000),headers:{Accept:"application/json"}});
   if(!response.ok) throw new Error(`API request failed: ${response.status}`);
   return response.json() as Promise<T>;
 }
@@ -29,41 +22,23 @@ async function optionalRequest<T>(path:string,fallback:T,revalidate=60):Promise<
 
 function normalizePlayer(value:any):Player{
   return {
-    id:String(value.id??""),
-    slug:String(value.slug??value.id??""),
-    fullName:String(value.fullName??value.name??"Bilinmeyen oyuncu"),
-    age:Number(value.age??0),
-    country:String(value.country??value.nation??"Bilinmiyor"),
-    countryCode:String(value.countryCode??""),
-    club:value.club??null,
-    league:value.league?String(value.league):undefined,
-    position:String(value.position??"-"),
-    preferredFoot:Number(value.preferredFoot??0),
-    currentAbility:Number(value.currentAbility??0),
-    potentialAbility:Number(value.potentialAbility??0),
-    marketValue:Number(value.marketValue??0),
-    weeklyWage:Number(value.weeklyWage??0),
-    isWonderkid:Boolean(value.isWonderkid),
-    isFeatured:Boolean(value.isFeatured??value.isHiddenGem)
+    id:String(value.id??""),slug:String(value.slug??value.id??""),fullName:String(value.fullName??value.name??"Bilinmeyen oyuncu"),
+    age:Number(value.age??0),country:String(value.country??value.nation??"Bilinmiyor"),countryCode:String(value.countryCode??""),
+    club:value.club??null,league:value.league?String(value.league):undefined,position:String(value.position??"-"),preferredFoot:Number(value.preferredFoot??0),
+    currentAbility:Number(value.currentAbility??0),potentialAbility:Number(value.potentialAbility??0),marketValue:Number(value.marketValue??0),weeklyWage:Number(value.weeklyWage??0),
+    isWonderkid:Boolean(value.isWonderkid),isFeatured:Boolean(value.isFeatured??value.isHiddenGem)
   };
 }
 
 export async function getPlayers(params:Record<string,string|undefined>={}){
-  const q=new URLSearchParams(Object.entries(params).filter(([,v])=>v) as [string,string][]);
-  const raw=await optionalRequest<any>(`/players?${q}`,null);
-  if(raw===null) return getJsonPlayers(params);
-  if(Array.isArray(raw)){
-    const items=raw.map(normalizePlayer);
-    return items.length?{items,page:1,pageSize:items.length,totalCount:items.length,totalPages:1}:getJsonPlayers(params);
-  }
-  const items=Array.isArray(raw?.items)?raw.items.map(normalizePlayer):[];
-  if(!items.length) return getJsonPlayers(params);
-  return {items,page:Number(raw?.page??1),pageSize:Number(raw?.pageSize??items.length),totalCount:Number(raw?.totalCount??items.length),totalPages:Number(raw?.totalPages??1)};
+  return getJsonPlayers(params);
 }
 
 export async function getPlayer(slug:string){
+  const jsonPlayer=getJsonPlayer(slug);
+  if(jsonPlayer) return jsonPlayer;
   const raw=await optionalRequest<any>(`/players/${encodeURIComponent(slug)}`,null);
-  return raw?normalizePlayer(raw):getJsonPlayer(slug);
+  return raw?normalizePlayer(raw):null;
 }
 
 export async function getRecommendations(params:Record<string,string|undefined>={}){
@@ -71,19 +46,14 @@ export async function getRecommendations(params:Record<string,string|undefined>=
   return optionalRequest<ScoutRecommendation[]>(`/scouting/recommendations?${q}`,[]);
 }
 
-export const getStats=async()=>{
-  const apiStats=await optionalRequest<PlatformStats|null>("/scouting/stats",null,300);
-  return apiStats&&apiStats.players>0?apiStats:getJsonStats();
-};
+export const getStats=async()=>getJsonStats();
 
 export async function comparePlayers(slugs:string[]){
-  const q=new URLSearchParams();
-  slugs.forEach(x=>q.append("slugs",x));
+  const q=new URLSearchParams();slugs.forEach(x=>q.append("slugs",x));
   return optionalRequest<Comparison>(`/scouting/compare?${q}`,{players:[],immediateImpactWinner:"",longTermWinner:"",valueWinner:""});
 }
 
 export const money=(n:number)=>new Intl.NumberFormat("tr-TR",{style:"currency",currency:"EUR",notation:n>=1_000_000?"compact":"standard",maximumFractionDigits:1}).format(n);
-
 export const getCollections=()=>optionalRequest<any[]>("/collections",[],300);
 export const getCollection=(slug:string)=>optionalRequest<any>(`/collections/${encodeURIComponent(slug)}`,null,120);
 export const getArticles=()=>optionalRequest<any[]>("/articles",[],300);
