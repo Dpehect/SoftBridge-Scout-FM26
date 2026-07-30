@@ -1,4 +1,4 @@
-name: Import FM26 Players
+name: Import FM26 Top 5 League Players
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
       club_limit:
         description: Clubs processed per API request
         required: false
-        default: "2"
+        default: "3"
   schedule:
     - cron: "17 3 * * 0"
 
@@ -20,11 +20,11 @@ permissions:
 jobs:
   import:
     runs-on: ubuntu-latest
-    timeout-minutes: 330
+    timeout-minutes: 300
     env:
       API_URL: ${{ secrets.RENDER_API_URL }}
       IMPORT_KEY: ${{ secrets.SORTITOUTSI_IMPORT_KEY }}
-      CLUB_LIMIT: ${{ inputs.club_limit || '2' }}
+      CLUB_LIMIT: ${{ inputs.club_limit || '3' }}
 
     steps:
       - name: Validate configuration
@@ -50,13 +50,14 @@ jobs:
           echo "API did not become ready"
           exit 1
 
-      - name: Import all ten leagues in small batches
+      - name: Import Premier League LaLiga Serie A Bundesliga Ligue 1
         shell: bash
         run: |
           set -euo pipefail
           base="${API_URL%/}"
 
-          for league in $(seq 0 9); do
+          # Importer league indexes 0-4 are England, Spain, Italy, Germany and France.
+          for league in $(seq 0 4); do
             offset=0
             completed=false
             request_count=0
@@ -65,7 +66,7 @@ jobs:
 
             while [ "$completed" != "true" ]; do
               request_count=$((request_count + 1))
-              if [ "$request_count" -gt 40 ]; then
+              if [ "$request_count" -gt 30 ]; then
                 echo "Safety stop: too many requests for league $league"
                 exit 1
               fi
@@ -112,11 +113,9 @@ jobs:
               fi
 
               offset="$next_offset"
-
-              # Keeps source traffic, Render CPU and Neon writes conservative.
-              sleep 25
+              sleep 20
             done
 
             echo "League index $league completed"
-            sleep 45
+            sleep 35
           done
