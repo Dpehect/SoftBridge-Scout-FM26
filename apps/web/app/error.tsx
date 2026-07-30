@@ -1,1 +1,35 @@
-"use client";export default function ErrorPage({reset}:{reset:()=>void}){return <main className="container page"><div className="panel" style={{padding:32,maxWidth:620}}><span className="eyebrow">BAĞLANTI HATASI</span><h1>API şu anda yanıt vermiyor.</h1><p style={{color:"var(--muted)"}}>Render ücretsiz servisi uyku modundaysa ilk istek biraz gecikebilir.</p><button className="btn btn-primary" onClick={reset}>Tekrar dene</button></div></main>}
+"use client";
+
+import { useEffect } from "react";
+
+export default function ErrorPage({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+    console.error("Application runtime error:", error);
+  }, [error]);
+
+  return (
+    <main className="container page">
+      <div className="panel" style={{ padding: 32, maxWidth: 720 }}>
+        <span className="eyebrow">UYGULAMA HATASI</span>
+        <h1>Sayfa yüklenirken bir hata oluştu.</h1>
+        <p style={{ color: "var(--muted)" }}>
+          {error.message || "Bilinmeyen çalışma zamanı hatası."}
+        </p>
+        {error.digest ? (
+          <p style={{ color: "var(--muted)", fontSize: 13 }}>
+            Hata kodu: {error.digest}
+          </p>
+        ) : null}
+        <button className="btn btn-primary" onClick={reset}>
+          Tekrar dene
+        </button>
+      </div>
+    </main>
+  );
+}
