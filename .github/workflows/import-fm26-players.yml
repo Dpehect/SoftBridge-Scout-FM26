@@ -1,6 +1,11 @@
 name: Import FM26 Top 5 League Players
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/import-fm26-players.yml
   workflow_dispatch:
     inputs:
       club_limit:
