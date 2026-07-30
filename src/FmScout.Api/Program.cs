@@ -4,14 +4,24 @@ using FmScout.Infrastructure.Seed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
+
 var builder=WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((ctx,cfg)=>cfg.ReadFrom.Configuration(ctx.Configuration).WriteTo.Console());
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHealthChecks();
-var origins=builder.Configuration.GetSection("Cors:Origins").Get<string[]>()??["http://localhost:3000"];
-builder.Services.AddCors(o=>o.AddPolicy("web",p=>p.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod()));
+
+var configuredOrigins=builder.Configuration.GetSection("Cors:Origins").Get<string[]>()??Array.Empty<string>();
+builder.Services.AddCors(options=>options.AddPolicy("web",policy=>policy
+    .SetIsOriginAllowed(origin=>
+        configuredOrigins.Contains(origin,StringComparer.OrdinalIgnoreCase)||
+        Uri.TryCreate(origin,UriKind.Absolute,out var uri)&&
+        (uri.Host.Equals("localhost",StringComparison.OrdinalIgnoreCase)||
+         uri.Host.EndsWith(".vercel.app",StringComparison.OrdinalIgnoreCase)))
+    .AllowAnyHeader()
+    .AllowAnyMethod()));
+
 var app=builder.Build();
 app.UseForwardedHeaders(new ForwardedHeadersOptions{ForwardedHeaders=ForwardedHeaders.XForwardedFor|ForwardedHeaders.XForwardedProto});
 app.UseExceptionHandler();
