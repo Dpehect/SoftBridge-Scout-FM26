@@ -1,10 +1,12 @@
-1. ZIP'i aç.
-2. İçindeki dosyaları SoftBridge-Scout-FM26 proje ana klasörüne kopyala.
-3. docs/KOYEB-NEON-DEPLOYMENT.md dosyasını sil.
-4. GitHub'a yükle.
-5. Railway'de New Project > Deploy from GitHub repo seç.
-6. Dpehect/SoftBridge-Scout-FM26 reposunu seç.
-7. Railway Variables alanına .env.railway.example içindeki değişkenleri gerçek değerlerle ekle.
-8. Settings > Networking > Generate Domain seç.
-9. /health adresini açarak backend'i kontrol et.
-10. Vercel'e NEXT_PUBLIC_API_URL=https://RAILWAY_DOMAIN/api ekle ve yeniden deploy et.
+GUVENLI KURULUM
+
+1. ZIP'i açın.
+2. İçindeki Dockerfile, render.yaml ve src klasörünü GitHub reposunun köküne sürükleyin.
+3. Sorulduğunda mevcut dosyaların üzerine yazın.
+4. Başka dosya silmeyin.
+5. Render Environment bölümünde ConnectionStrings__DefaultConnection mevcut Neon bağlantınız olarak kalmalıdır.
+6. Render otomatik deploy başlatır.
+7. Önce /health kontrol edin. Bu endpoint 200 dönüyorsa servis deploy olmuştur.
+8. Sonra /health/db kontrol edin. Bu endpoint veritabanı bağlantısını doğrular.
+
+NOT: Veritabanı geçici olarak bağlanamazsa API yine açılır; Render deploy tamamen düşmez.
