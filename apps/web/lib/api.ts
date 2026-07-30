@@ -1,4 +1,6 @@
-export type Player={id:string;slug:string;fullName:string;age:number;country:string;countryCode:string;club:string|null;position:string;preferredFoot:number;currentAbility:number;potentialAbility:number;marketValue:number;weeklyWage:number;isWonderkid:boolean;isFeatured:boolean};
+import { getJsonPlayer, getJsonPlayers, getJsonStats } from "@/lib/player-data";
+
+export type Player={id:string;slug:string;fullName:string;age:number;country:string;countryCode:string;club:string|null;league?:string;position:string;preferredFoot:number;currentAbility:number;potentialAbility:number;marketValue:number;weeklyWage:number;isWonderkid:boolean;isFeatured:boolean};
 export type PagedPlayers={items:Player[];page:number;pageSize:number;totalCount:number;totalPages:number};
 export type ScoutRecommendation={id:string;slug:string;fullName:string;age:number;position:string;country:string;club:string|null;marketValue:number;currentAbility:number;potentialAbility:number;scoutScore:number;valueScore:number;developmentScore:number;roleScore:number;reasons:string[]};
 export type PlatformStats={players:number;clubs:number;countries:number;roles:number;wonderkids:number};
@@ -34,6 +36,7 @@ function normalizePlayer(value:any):Player{
     country:String(value.country??value.nation??"Bilinmiyor"),
     countryCode:String(value.countryCode??""),
     club:value.club??null,
+    league:value.league?String(value.league):undefined,
     position:String(value.position??"-"),
     preferredFoot:Number(value.preferredFoot??0),
     currentAbility:Number(value.currentAbility??0),
@@ -47,18 +50,20 @@ function normalizePlayer(value:any):Player{
 
 export async function getPlayers(params:Record<string,string|undefined>={}){
   const q=new URLSearchParams(Object.entries(params).filter(([,v])=>v) as [string,string][]);
-  const raw=await optionalRequest<any>(`/players?${q}`,[]);
+  const raw=await optionalRequest<any>(`/players?${q}`,null);
+  if(raw===null) return getJsonPlayers(params);
   if(Array.isArray(raw)){
     const items=raw.map(normalizePlayer);
-    return {items,page:1,pageSize:items.length,totalCount:items.length,totalPages:1};
+    return items.length?{items,page:1,pageSize:items.length,totalCount:items.length,totalPages:1}:getJsonPlayers(params);
   }
   const items=Array.isArray(raw?.items)?raw.items.map(normalizePlayer):[];
+  if(!items.length) return getJsonPlayers(params);
   return {items,page:Number(raw?.page??1),pageSize:Number(raw?.pageSize??items.length),totalCount:Number(raw?.totalCount??items.length),totalPages:Number(raw?.totalPages??1)};
 }
 
 export async function getPlayer(slug:string){
   const raw=await optionalRequest<any>(`/players/${encodeURIComponent(slug)}`,null);
-  return raw?normalizePlayer(raw):null;
+  return raw?normalizePlayer(raw):getJsonPlayer(slug);
 }
 
 export async function getRecommendations(params:Record<string,string|undefined>={}){
@@ -66,7 +71,10 @@ export async function getRecommendations(params:Record<string,string|undefined>=
   return optionalRequest<ScoutRecommendation[]>(`/scouting/recommendations?${q}`,[]);
 }
 
-export const getStats=()=>optionalRequest<PlatformStats>("/scouting/stats",{players:0,clubs:0,countries:0,roles:0,wonderkids:0},300);
+export const getStats=async()=>{
+  const apiStats=await optionalRequest<PlatformStats|null>("/scouting/stats",null,300);
+  return apiStats&&apiStats.players>0?apiStats:getJsonStats();
+};
 
 export async function comparePlayers(slugs:string[]){
   const q=new URLSearchParams();
