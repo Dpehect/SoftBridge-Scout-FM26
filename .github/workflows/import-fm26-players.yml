@@ -1,0 +1,122 @@
+name: Import FM26 Players
+
+on:
+  workflow_dispatch:
+    inputs:
+      club_limit:
+        description: Clubs processed per API request
+        required: false
+        default: "2"
+  schedule:
+    - cron: "17 3 * * 0"
+
+concurrency:
+  group: fm26-player-import
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    env:
+      API_URL: ${{ secrets.RENDER_API_URL }}
+      IMPORT_KEY: ${{ secrets.SORTITOUTSI_IMPORT_KEY }}
+      CLUB_LIMIT: ${{ inputs.club_limit || '2' }}
+
+    steps:
+      - name: Validate configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$API_URL" || { echo "Missing RENDER_API_URL secret"; exit 1; }
+          test -n "$IMPORT_KEY" || { echo "Missing SORTITOUTSI_IMPORT_KEY secret"; exit 1; }
+
+      - name: Wake Render service
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="${API_URL%/}"
+          for attempt in {1..12}; do
+            if curl --fail --silent --show-error --max-time 30 "$base/health" >/dev/null; then
+              echo "API is ready"
+              exit 0
+            fi
+            echo "Waiting for Render... attempt $attempt/12"
+            sleep 15
+          done
+          echo "API did not become ready"
+          exit 1
+
+      - name: Import all ten leagues in small batches
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="${API_URL%/}"
+
+          for league in $(seq 0 9); do
+            offset=0
+            completed=false
+            request_count=0
+
+            echo "Starting league index $league"
+
+            while [ "$completed" != "true" ]; do
+              request_count=$((request_count + 1))
+              if [ "$request_count" -gt 40 ]; then
+                echo "Safety stop: too many requests for league $league"
+                exit 1
+              fi
+
+              url="$base/api/import/sortitoutsi/run?leagueIndex=$league&clubOffset=$offset&clubLimit=$CLUB_LIMIT"
+              response_file="$(mktemp)"
+
+              http_code=$(curl \
+                --silent \
+                --show-error \
+                --location \
+                --max-time 180 \
+                --retry 4 \
+                --retry-all-errors \
+                --retry-delay 20 \
+                --output "$response_file" \
+                --write-out "%{http_code}" \
+                --request POST \
+                --header "X-Import-Key: $IMPORT_KEY" \
+                "$url")
+
+              cat "$response_file"
+              echo
+
+              if [ "$http_code" -lt 200 ] || [ "$http_code" -ge 300 ]; then
+                echo "Import failed with HTTP $http_code"
+                rm -f "$response_file"
+                exit 1
+              fi
+
+              next_offset=$(jq -r '.nextClubOffset // .NextClubOffset // empty' "$response_file")
+              completed=$(jq -r '.leagueCompleted // .LeagueCompleted // false' "$response_file")
+              processed=$(jq -r '.clubsProcessed // .ClubsProcessed // 0' "$response_file")
+              rm -f "$response_file"
+
+              if ! [[ "$next_offset" =~ ^[0-9]+$ ]]; then
+                echo "Invalid nextClubOffset returned"
+                exit 1
+              fi
+
+              if [ "$completed" != "true" ] && [ "$processed" -eq 0 ]; then
+                echo "No progress returned; stopping to prevent an infinite loop"
+                exit 1
+              fi
+
+              offset="$next_offset"
+
+              # Keeps source traffic, Render CPU and Neon writes conservative.
+              sleep 25
+            done
+
+            echo "League index $league completed"
+            sleep 45
+          done
