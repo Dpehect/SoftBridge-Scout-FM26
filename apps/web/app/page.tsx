@@ -8,15 +8,54 @@ import {
 } from "lucide-react";
 
 import { PlayerCard } from "@/components/player-card";
-import { getPlayers, getStats, type Player } from "@/lib/api";
+import { getPlayers, getStats, type Player, type PlatformStats } from "@/lib/api";
 
 type StatItem = [value: number, label: string, icon: LucideIcon];
 
+const EMPTY_STATS: PlatformStats = {
+  players: 0,
+  clubs: 0,
+  countries: 0,
+  roles: 0,
+  wonderkids: 0,
+};
+
+function safeNumber(value: unknown): number {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+}
+
 export default async function Home() {
-  const [data, stats] = await Promise.all([
+  const [playersResult, statsResult] = await Promise.allSettled([
     getPlayers({ featured: "true", pageSize: "6" }),
     getStats(),
   ]);
+
+  const rawItems =
+    playersResult.status === "fulfilled" && Array.isArray(playersResult.value?.items)
+      ? playersResult.value.items
+      : [];
+
+  const players: Player[] = rawItems.filter(
+    (player): player is Player =>
+      Boolean(player) &&
+      typeof player === "object" &&
+      typeof player.id === "string" &&
+      typeof player.slug === "string",
+  );
+
+  const rawStats =
+    statsResult.status === "fulfilled" && statsResult.value
+      ? statsResult.value
+      : EMPTY_STATS;
+
+  const stats: PlatformStats = {
+    players: safeNumber(rawStats.players),
+    clubs: safeNumber(rawStats.clubs),
+    countries: safeNumber(rawStats.countries),
+    roles: safeNumber(rawStats.roles),
+    wonderkids: safeNumber(rawStats.wonderkids),
+  };
 
   const statItems: StatItem[] = [
     [stats.players, "Oyuncu", Search],
@@ -73,7 +112,7 @@ export default async function Home() {
           </Link>
         </div>
         <div className="card-grid">
-          {data.items.map((player: Player) => (
+          {players.map((player) => (
             <PlayerCard key={player.id} player={player} />
           ))}
         </div>
