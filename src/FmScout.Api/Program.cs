@@ -1,3 +1,4 @@
+using FmScout.Api.Services;
 using FmScout.Infrastructure;
 using FmScout.Infrastructure.Persistence;
 using FmScout.Infrastructure.Seed;
@@ -11,6 +12,11 @@ builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHealthChecks();
+builder.Services.AddHttpClient<SortitoutsiImporter>(client=>
+{
+    client.Timeout=TimeSpan.FromSeconds(25);
+    client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-GB,en;q=0.9");
+});
 
 var configuredOrigins=builder.Configuration.GetSection("Cors:Origins").Get<string[]>()??Array.Empty<string>();
 builder.Services.AddCors(options=>options.AddPolicy("web",policy=>policy
