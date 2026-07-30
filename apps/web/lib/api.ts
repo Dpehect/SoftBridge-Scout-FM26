@@ -4,13 +4,17 @@ export type ScoutRecommendation={id:string;slug:string;fullName:string;age:numbe
 export type PlatformStats={players:number;clubs:number;countries:number;roles:number;wonderkids:number};
 export type Comparison={players:Array<{id:string;slug:string;fullName:string;age:number;position:string;marketValue:number;weeklyWage:number;currentAbility:number;potentialAbility:number;bestRoleScore:number;categoryScores:Record<string,number>}>;immediateImpactWinner:string;longTermWinner:string;valueWinner:string};
 
-const DEFAULT_API_URL="https://fm26-scout-api.onrender.com/api";
-const API=(process.env.NEXT_PUBLIC_API_URL?.trim()||DEFAULT_API_URL).replace(/\/$/,"");
+const PRODUCTION_API_URL="https://fm26-scout-api.onrender.com/api";
+const configuredApi=process.env.NEXT_PUBLIC_API_URL?.trim();
+const API=(process.env.NODE_ENV==="production"
+  ? PRODUCTION_API_URL
+  : configuredApi||"http://localhost:8080/api"
+).replace(/\/$/,"");
 
 async function request<T>(path:string,revalidate=60):Promise<T>{
   const response=await fetch(`${API}${path}`,{
     next:{revalidate},
-    signal:AbortSignal.timeout(20000),
+    signal:AbortSignal.timeout(60000),
     headers:{Accept:"application/json"}
   });
   if(!response.ok) throw new Error(`API request failed: ${response.status}`);
