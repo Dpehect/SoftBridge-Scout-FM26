@@ -7,26 +7,26 @@ const PREMIER_LEAGUE_FILE = path.join(OUTPUT_DIR, "premier-league.json");
 const TOP5_FILE = path.join(OUTPUT_DIR, "top5.json");
 
 const clubs = [
-  { name: "AFC Bournemouth", aliases: ["AFC Bournemouth"] },
-  { name: "Arsenal", aliases: ["Arsenal"] },
-  { name: "Aston Villa", aliases: ["Aston Villa"] },
-  { name: "Brentford", aliases: ["Brentford"] },
-  { name: "Brighton & Hove Albion", aliases: ["Brighton & Hove Albion", "Brighton and Hove Albion"] },
-  { name: "Burnley", aliases: ["Burnley"] },
-  { name: "Chelsea", aliases: ["Chelsea"] },
-  { name: "Crystal Palace", aliases: ["Crystal Palace"] },
-  { name: "Everton", aliases: ["Everton"] },
-  { name: "Fulham", aliases: ["Fulham"] },
-  { name: "Leeds United", aliases: ["Leeds United"] },
-  { name: "Liverpool", aliases: ["Liverpool"] },
-  { name: "Manchester City", aliases: ["Manchester City", "Man City"] },
-  { name: "Manchester United", aliases: ["Manchester United", "Man Utd"] },
-  { name: "Newcastle United", aliases: ["Newcastle United"] },
-  { name: "Nottingham Forest", aliases: ["Nottingham Forest"] },
-  { name: "Sunderland", aliases: ["Sunderland"] },
-  { name: "Tottenham Hotspur", aliases: ["Tottenham Hotspur", "Spurs"] },
-  { name: "West Ham United", aliases: ["West Ham United"] },
-  { name: "Wolverhampton Wanderers", aliases: ["Wolverhampton Wanderers", "Wolves"] }
+  { name: "AFC Bournemouth", aliases: ["AFC Bournemouth"], strength: 73 },
+  { name: "Arsenal", aliases: ["Arsenal"], strength: 88 },
+  { name: "Aston Villa", aliases: ["Aston Villa"], strength: 81 },
+  { name: "Brentford", aliases: ["Brentford"], strength: 75 },
+  { name: "Brighton & Hove Albion", aliases: ["Brighton & Hove Albion", "Brighton and Hove Albion"], strength: 78 },
+  { name: "Burnley", aliases: ["Burnley"], strength: 69 },
+  { name: "Chelsea", aliases: ["Chelsea"], strength: 85 },
+  { name: "Crystal Palace", aliases: ["Crystal Palace"], strength: 77 },
+  { name: "Everton", aliases: ["Everton"], strength: 74 },
+  { name: "Fulham", aliases: ["Fulham"], strength: 75 },
+  { name: "Leeds United", aliases: ["Leeds United"], strength: 71 },
+  { name: "Liverpool", aliases: ["Liverpool"], strength: 89 },
+  { name: "Manchester City", aliases: ["Manchester City", "Man City"], strength: 90 },
+  { name: "Manchester United", aliases: ["Manchester United", "Man Utd"], strength: 82 },
+  { name: "Newcastle United", aliases: ["Newcastle United"], strength: 83 },
+  { name: "Nottingham Forest", aliases: ["Nottingham Forest"], strength: 76 },
+  { name: "Sunderland", aliases: ["Sunderland"], strength: 68 },
+  { name: "Tottenham Hotspur", aliases: ["Tottenham Hotspur", "Spurs"], strength: 81 },
+  { name: "West Ham United", aliases: ["West Ham United"], strength: 75 },
+  { name: "Wolverhampton Wanderers", aliases: ["Wolverhampton Wanderers", "Wolves"], strength: 72 }
 ];
 
 const decode = (value = "") => value
@@ -45,16 +45,29 @@ const normalize = (value = "") => decode(value)
   .trim()
   .toLocaleLowerCase("en-US");
 
-function hash(value) {
+function numericHash(value) {
   let result = 0;
   for (let index = 0; index < value.length; index += 1) {
     result = ((result << 5) - result + value.charCodeAt(index)) | 0;
   }
-  return String(Math.abs(result));
+  return Math.abs(result);
+}
+
+function hash(value) {
+  return String(numericHash(value));
 }
 
 function slugify(value) {
   return normalize(value).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+function abilityEstimate(club, fullName) {
+  const seed = numericHash(`${club.name}:${fullName}`);
+  const squadOffset = (seed % 13) - 6;
+  const currentAbility = Math.max(58, Math.min(94, club.strength + squadOffset));
+  const growth = 2 + ((Math.floor(seed / 13) % 9));
+  const potentialAbility = Math.max(currentAbility, Math.min(97, currentAbility + growth));
+  return { currentAbility, potentialAbility };
 }
 
 async function getHtml() {
@@ -103,7 +116,7 @@ function looksLikePlayer(name) {
   return !/[{}<>]/.test(name);
 }
 
-function parseClub(lines, club, nextClub) {
+function parseClub(lines, club, nextClub, previousByName) {
   const start = lines.findIndex((line) => isClubLine(line, club));
   if (start < 0) throw new Error(`Club heading not found: ${club.name}`);
 
@@ -121,66 +134,69 @@ function parseClub(lines, club, nextClub) {
   const u21Index = afterMarker.findIndex((line) => /^u21 players/i.test(line));
   const seniorLines = u21Index >= 0 ? afterMarker.slice(0, u21Index) : afterMarker;
 
-  const names = seniorLines
-    .map(cleanPlayerName)
-    .filter(looksLikePlayer);
-
+  const names = seniorLines.map(cleanPlayerName).filter(looksLikePlayer);
   const unique = [...new Set(names)];
-  if (unique.length < 15 || unique.length > 30) {
-    throw new Error(`${club.name}: parsed ${unique.length} senior players`);
-  }
+  if (unique.length < 15 || unique.length > 30) throw new Error(`${club.name}: parsed ${unique.length} senior players`);
 
   return unique.map((fullName) => {
     const id = hash(`${club.name}:${fullName}`);
+    const previous = previousByName.get(normalize(fullName));
+    const estimated = abilityEstimate(club, fullName);
+    const currentAbility = previous?.currentAbility > 0 ? previous.currentAbility : estimated.currentAbility;
+    const potentialAbility = previous?.potentialAbility > 0
+      ? Math.max(currentAbility, previous.potentialAbility)
+      : estimated.potentialAbility;
+
     return {
       id,
       slug: `${slugify(fullName)}-${id}`,
       fullName,
-      age: 0,
-      country: "Unknown",
-      countryCode: "",
+      age: previous?.age ?? 0,
+      country: previous?.country || "Unknown",
+      countryCode: previous?.countryCode || "",
       club: club.name,
       league: "Premier League",
-      position: "-",
-      preferredFoot: 0,
-      currentAbility: 0,
-      potentialAbility: 0,
-      marketValue: 0,
-      weeklyWage: 0,
-      isWonderkid: false,
-      isFeatured: false
+      position: previous?.position || "-",
+      preferredFoot: previous?.preferredFoot ?? 0,
+      currentAbility,
+      potentialAbility,
+      marketValue: previous?.marketValue ?? 0,
+      weeklyWage: previous?.weeklyWage ?? 0,
+      isWonderkid: (previous?.age ?? 99) <= 21 && potentialAbility >= 80,
+      isFeatured: currentAbility >= 80 || potentialAbility >= 86,
+      abilitySource: previous?.currentAbility > 0 ? "imported" : "estimated"
     };
   });
 }
 
 async function readJson(file, fallback = []) {
-  try {
-    return JSON.parse(await readFile(file, "utf8"));
-  } catch {
-    return fallback;
-  }
+  try { return JSON.parse(await readFile(file, "utf8")); } catch { return fallback; }
 }
 
 await mkdir(OUTPUT_DIR, { recursive: true });
+const currentTop5 = await readJson(TOP5_FILE, []);
+const previousByName = new Map(currentTop5.map((player) => [normalize(player.fullName), player]));
 const html = await getHtml();
 const lines = htmlToLines(html);
 const all = [];
 
 for (let index = 0; index < clubs.length; index += 1) {
-  const players = parseClub(lines, clubs[index], clubs[index + 1]);
+  const players = parseClub(lines, clubs[index], clubs[index + 1], previousByName);
   all.push(...players);
   console.log(`${index + 1}/20 ${clubs[index].name}: ${players.length} senior players`);
 }
 
 const premierLeaguePlayers = [...new Map(all.map((player) => [player.slug, player])).values()]
-  .sort((a, b) => a.club.localeCompare(b.club) || a.fullName.localeCompare(b.fullName));
+  .sort((a, b) => a.club.localeCompare(b.club) || b.currentAbility - a.currentAbility);
 
 const clubCount = new Set(premierLeaguePlayers.map((player) => player.club)).size;
 if (clubCount !== 20) throw new Error(`Expected 20 clubs, found ${clubCount}`);
 if (premierLeaguePlayers.length < 300) throw new Error(`Premier League dataset too small: ${premierLeaguePlayers.length}`);
+if (premierLeaguePlayers.some((player) => player.currentAbility <= 0 || player.potentialAbility <= 0)) {
+  throw new Error("Ability validation failed: zero CA/PA value found");
+}
 
-const currentTop5 = await readJson(TOP5_FILE, []);
 const otherLeagues = currentTop5.filter((player) => player.league !== "Premier League");
 await writeFile(PREMIER_LEAGUE_FILE, `${JSON.stringify(premierLeaguePlayers, null, 2)}\n`, "utf8");
 await writeFile(TOP5_FILE, `${JSON.stringify([...premierLeaguePlayers, ...otherLeagues], null, 2)}\n`, "utf8");
-console.log(`Completed: ${premierLeaguePlayers.length} official Premier League senior players across 20 clubs`);
+console.log(`Completed: ${premierLeaguePlayers.length} Premier League players with visible CA/PA values`);
